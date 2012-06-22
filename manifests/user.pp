@@ -12,6 +12,7 @@ define postgresql::user(
   $createdb=false,
   $createrole=false,
   $hostname='/var/run/postgresql', 
+  $login=false,
   $port='5432', 
   $user='postgres') {
 
@@ -88,6 +89,14 @@ define postgresql::user(
           require => Exec["Create postgres user $name"],
         }
       }
+
+      exec { "Set LOGIN attribute for postgres user $name":
+        command => inline_template("/usr/local/sbin/pp-postgresql-user.sh '<%= connection %>' <%= login ? 'setlogin':'rejectlogin' %> ${name}"),
+        user    => "postgres",
+        unless  => "/usr/local/sbin/pp-postgresql-user.sh '${connection}' checklogin '${name}'",
+        require => Exec["Create postgres user $name"],
+      }
+
 
     }
 

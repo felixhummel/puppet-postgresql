@@ -50,6 +50,18 @@ case "$2" in
     USRPWD="$4"
     psql ${PSQL_OPTS} -c "ALTER USER \"${USRNAME}\" PASSWORD '${USRPWD}' "
     ;;
+  checklogin)
+    USRNAME="$3"
+    psql ${PSQL_OPTS} -c "SELECT rolname from pg_roles WHERE rolname = '${USRNAME}' AND rolcanlogin" | grep -q ${USRNAME}
+    ;;
+  setlogin)
+    USRNAME="$3"
+    psql ${PSQL_OPTS} -c "ALTER USER \"${USRNAME}\" LOGIN"
+    ;;
+  rejectlogin)
+    USRNAME="$3"
+    psql ${PSQL_OPTS} -c "ALTER USER \"${USRNAME}\" NOLOGIN"
+    ;;
   *)
     echo "$0: Gummy Bear Error"
     exit 1
