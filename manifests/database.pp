@@ -9,7 +9,7 @@ define postgresql::database(
   $ensure=present,
   $owner=false,
   $encoding=false,
-  $template="template1",
+  $template=false,
   $source=false,
   $overwrite=false) {
 
@@ -25,8 +25,12 @@ define postgresql::database(
 
   case $ensure {
     present: {
+      $createdb_cmd = $template ? {
+        false   => "createdb $ownerstring $encodingstring $name",
+        default => "createdb $ownerstring $encodingstring $name -T $template",
+      }
       exec { "Create $name postgres db":
-        command => "createdb $ownerstring $encodingstring $name -T $template",
+        command => $createdb_cmd,
         user    => "postgres",
         unless  => "test \$(psql -tA -c \"SELECT count(*)=1 FROM pg_catalog.pg_database where datname='${name}';\") = t",
         require => Postgresql::Cluster["main"],
